@@ -552,7 +552,6 @@ class BertLayer(nn.Module):
         return layer_output
 
 
-# RICKARD: Actual model, besides embedder first and pooler (no params)
 class BertEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -578,10 +577,7 @@ class BertEncoder(nn.Module):
         all_cross_attentions = () if output_attentions and self.config.add_cross_attention else None
 
         next_decoder_cache = () if use_cache else None
-        # RICKARD: Iterating through the layers
         for i, layer_module in enumerate(self.layer):
-            # RICKARD: Could do transforms here, then it's before every layer of hidden_states
-
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
 
@@ -620,9 +616,6 @@ class BertEncoder(nn.Module):
                     past_key_value,
                     output_attentions,
                 )
-
-            # RICKARD: Here should be the place to perform the transformations of hidden_states
-            # BertLayer ends with...
 
             hidden_states = layer_outputs[0]
             if use_cache:
