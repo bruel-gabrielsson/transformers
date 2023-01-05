@@ -551,15 +551,15 @@ class BertEncoder(nn.Module):
 
         next_decoder_cache = () if use_cache else None
         for i, layer_module in enumerate(self.layer):
-
+            print(i)
             # RICKARD: Do transformations here on hidden_states
 
 
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
 
-            if i == 3:
-                print("Test", hidden_states.shape)
+            if i == 6:
+                #print("Test", hidden_states.shape)
                 mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
                 mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=0.5] = True
                 hidden_states[mask_this_transform] = torch.nn.Dropout(p=0.5, inplace=False)(hidden_states[mask_this_transform])
