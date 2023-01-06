@@ -554,10 +554,7 @@ class BertEncoder(nn.Module):
         for i, layer_module in enumerate(self.layer):
             # RICKARD: Do transformations here on hidden_states
 
-
-            if output_hidden_states:
-                all_hidden_states = all_hidden_states + (hidden_states,)
-
+            
             if i == self.config.transform_layer and self.training:
                 #print("Test", self.config.transform_layer)
                 #print(hidden_states.shape) # [128, 32, 768]
@@ -566,6 +563,10 @@ class BertEncoder(nn.Module):
                 hidden_states[mask_this_transform] = torch.nn.Dropout(p=0.5, inplace=False)(hidden_states[mask_this_transform])
                 if not self.config.transform_trainable:
                     hidden_states[mask_this_transform] = hidden_states[mask_this_transform].detach()
+
+
+            if output_hidden_states:
+                all_hidden_states = all_hidden_states + (hidden_states,)
 
 
             layer_head_mask = head_mask[i] if head_mask is not None else None
