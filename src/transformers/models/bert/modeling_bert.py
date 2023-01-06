@@ -613,6 +613,14 @@ class BertEncoder(nn.Module):
                 if self.config.add_cross_attention:
                     all_cross_attentions = all_cross_attentions + (layer_outputs[2],)
 
+        if self.config.transform_layer == len(self.layer) and self.training:
+            mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
+            mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=0.5] = True
+            hidden_states[mask_this_transform] = torch.nn.Dropout(p=0.5, inplace=False)(hidden_states[mask_this_transform])
+            if not self.config.transform_trainable:
+                hidden_states[mask_this_transform] = hidden_states[mask_this_transform].detach()
+
+
         if output_hidden_states:
             all_hidden_states = all_hidden_states + (hidden_states,)
 
