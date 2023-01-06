@@ -558,8 +558,8 @@ class BertEncoder(nn.Module):
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
 
-            if i == 9 and self.training:
-                #print("Test", hidden_states.shape)
+            if i == self.config.transform_layer and self.training:
+                print("Test", self.config.transform_layer)
                 mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
                 mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=0.5] = True
                 hidden_states[mask_this_transform] = torch.nn.Dropout(p=0.5, inplace=False)(hidden_states[mask_this_transform])
