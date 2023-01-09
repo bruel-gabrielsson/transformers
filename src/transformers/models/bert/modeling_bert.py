@@ -561,7 +561,7 @@ class BertEncoder(nn.Module):
                 # pooler_output = pooler_output.view((batch_size, num_sent, pooler_output.size(-1)))
                 hidden_states_org_size = hidden_states.size()
                 if self.config.transform_one_sided:
-                    hidden_states = hidden_states.view((hidden_states.size(0), 2, hidden_states.size(1), hidden_states.size(-1)))
+                    hidden_states = hidden_states.view((hidden_states.size(0), 2, hidden_states.size(1)//2, hidden_states.size(-1)))
                     hidden_states, hidden_states2 = hidden_states[:,0], hidden_states[:,1]
                     print(hidden_states.shape)
 
@@ -628,7 +628,7 @@ class BertEncoder(nn.Module):
         if self.config.transform_layer == len(self.layer) and self.training:
             hidden_states_org_size = hidden_states.size()
             if self.config.transform_one_sided:
-                hidden_states = hidden_states.view((hidden_states.size(0), 2, hidden_states.size(1), hidden_states.size(-1)))
+                hidden_states = hidden_states.view((hidden_states.size(0), 2, hidden_states.size(1)//2, hidden_states.size(-1)))
                 hidden_states, hidden_states2 = hidden_states[:,0], hidden_states[:,1]
 
             mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
