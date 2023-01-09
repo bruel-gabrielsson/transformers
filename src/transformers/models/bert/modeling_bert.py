@@ -558,11 +558,23 @@ class BertEncoder(nn.Module):
             if i == self.config.transform_layer and self.training:
                 #print("Test", self.config.transform_layer)
                 #print(hidden_states.shape) # [128, 32, 768]
+                # pooler_output = pooler_output.view((batch_size, num_sent, pooler_output.size(-1)))
+                hidden_states_org_size = hidden_states.size()
+                if self.config.transform_one_sided:
+                    hidden_states = hidden_states.view((hidden_states.size(0), 2, hidden_states.size(-1)))
+                    hidden_states, hidden_states2 = hidden_states[:,0], hidden_states[:,1]
+                    print(hidden_states.shape)
+
                 mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
-                mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=0.5] = True
+                mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_p] = True
                 hidden_states[mask_this_transform] = torch.nn.Dropout(p=0.5, inplace=False)(hidden_states[mask_this_transform])
                 if not self.config.transform_trainable:
                     hidden_states[mask_this_transform] = hidden_states[mask_this_transform].detach()
+
+                if self.config.transform_one_sided:
+                    hidden_states = torch.stack([hidden_states, hidden_states2], dim=1)
+                    hidden_states = hidden_states.view(hidden_states_org_size)
+                    print(hidden_states.shape)
 
 
             if output_hidden_states:
@@ -614,11 +626,20 @@ class BertEncoder(nn.Module):
                     all_cross_attentions = all_cross_attentions + (layer_outputs[2],)
 
         if self.config.transform_layer == len(self.layer) and self.training:
+            hidden_states_org_size = hidden_states.size()
+            if self.config.transform_one_sided:
+                hidden_states = hidden_states.view((hidden_states.size(0), 2, hidden_states.size(-1)))
+                hidden_states, hidden_states2 = hidden_states[:,0], hidden_states[:,1]
+
             mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
-            mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=0.5] = True
+            mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_p] = True
             hidden_states[mask_this_transform] = torch.nn.Dropout(p=0.5, inplace=False)(hidden_states[mask_this_transform])
             if not self.config.transform_trainable:
                 hidden_states[mask_this_transform] = hidden_states[mask_this_transform].detach()
+            
+            if self.config.transform_one_sided:
+                    hidden_states = torch.stack([hidden_states, hidden_states2], dim=1)
+                    hidden_states = hidden_states.view(hidden_states_org_size)
 
 
         if output_hidden_states:
@@ -717,6 +738,7 @@ class BertOnlyNSPHead(nn.Module):
         return seq_relationship_score
 
 
+# RICKARD: Is this used during pretraining for SIMCSE?
 class BertPreTrainingHeads(nn.Module):
     def __init__(self, config):
         super().__init__()
