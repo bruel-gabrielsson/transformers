@@ -563,7 +563,7 @@ class BertEncoder(nn.Module):
                 if self.config.transform_one_sided:
                     hidden_states = hidden_states.view((hidden_states.size(0), 2, hidden_states.size(1)//2, hidden_states.size(-1)))
                     hidden_states, hidden_states2 = hidden_states[:,0], hidden_states[:,1]
-                    print(hidden_states.shape)
+                    #print(hidden_states.shape)
 
                 mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
                 mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_p] = True
@@ -574,7 +574,7 @@ class BertEncoder(nn.Module):
                 if self.config.transform_one_sided:
                     hidden_states = torch.stack([hidden_states, hidden_states2], dim=1)
                     hidden_states = hidden_states.view(hidden_states_org_size)
-                    print(hidden_states.shape)
+                    #print(hidden_states.shape)
 
 
             if output_hidden_states:
