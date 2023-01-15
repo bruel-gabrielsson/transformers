@@ -556,7 +556,7 @@ class BertEncoder(nn.Module):
 
             
             if self.training and i == self.config.transform_layer:
-                #print("Test", self.config.transform_layer)
+                print("Test", self.config.transform_layer)
                 #print(hidden_states.shape) # [128, 32, 768]
                 # pooler_output = pooler_output.view((batch_size, num_sent, pooler_output.size(-1)))
                 hidden_states_org_size = hidden_states.size()
