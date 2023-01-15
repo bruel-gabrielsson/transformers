@@ -555,7 +555,7 @@ class BertEncoder(nn.Module):
             # RICKARD: Do transformations here on hidden_states
 
             
-            if i == self.config.transform_layer and self.training:
+            if self.training and i == self.config.transform_layer:
                 #print("Test", self.config.transform_layer)
                 #print(hidden_states.shape) # [128, 32, 768]
                 # pooler_output = pooler_output.view((batch_size, num_sent, pooler_output.size(-1)))
