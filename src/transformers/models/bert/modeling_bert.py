@@ -625,7 +625,7 @@ class BertEncoder(nn.Module):
                 if self.config.add_cross_attention:
                     all_cross_attentions = all_cross_attentions + (layer_outputs[2],)
 
-        if self.config.transform_layer == len(self.layer) and self.training:
+        if self.training and self.config.transform_layer == len(self.layer):
             hidden_states_org_size = hidden_states.size()
             if self.config.transform_one_sided:
                 hidden_states = hidden_states.view((hidden_states.size(0), 2, hidden_states.size(1)//2, hidden_states.size(-1)))
