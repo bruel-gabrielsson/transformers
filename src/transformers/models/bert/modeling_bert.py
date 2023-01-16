@@ -535,7 +535,7 @@ class BertEncoder(nn.Module):
         layers = []
         for i in range(config.num_hidden_layers):
             this_config = config
-            if config.dropout_only_layer >= 0:
+            if self.training and config.dropout_only_layer >= 0:
                 if i != config.dropout_only_layer:
                     print("kiling layer", i)
                     this_config = copy.deepcopy(config)
