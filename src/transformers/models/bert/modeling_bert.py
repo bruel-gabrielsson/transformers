@@ -89,6 +89,9 @@ BERT_PRETRAINED_MODEL_ARCHIVE_LIST = [
     # See all BERT models at https://huggingface.co/models?filter=bert
 ]
 
+# rickard
+import copy
+
 
 def load_tf_weights_in_bert(model, config, tf_checkpoint_path):
     """Load tf checkpoints in a pytorch model."""
@@ -529,7 +532,20 @@ class BertEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        self.layer = nn.ModuleList([BertLayer(config) for _ in range(config.num_hidden_layers)])
+        layers = []
+        for i in range(config.num_hidden_layers):
+            this_config = config
+            if config.dropout_only_layer >= 0:
+                if i != config.dropout_only_layer:
+                    print("kiling layer", i)
+                    this_config = copy.deepcopy(config)
+                    this_config.attention_probs_dropout_prob = 0.0
+                    this_config.hidden_dropout_prob = 0.0
+
+            layers.append( BertLayer(this_config) )
+
+        #self.layer = nn.ModuleList([BertLayer(config) for _ in range(config.num_hidden_layers)])
+        self.layer = nn.ModuleList(layers)
         self.gradient_checkpointing = False
 
     def forward(
