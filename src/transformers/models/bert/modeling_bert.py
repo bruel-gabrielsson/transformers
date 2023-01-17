@@ -533,6 +533,7 @@ class BertEncoder(nn.Module):
         super().__init__()
         self.config = config
         layers = []
+        # This is called only when created? So also done in eval?
         for i in range(config.num_hidden_layers):
             this_config = config
             if self.training and config.dropout_only_layer >= 0:
@@ -572,7 +573,7 @@ class BertEncoder(nn.Module):
 
             
             if self.training and i == self.config.transform_layer:
-                #print("Test", self.config.transform_layer)
+                print("Test", self.config.transform_layer)
                 #print(hidden_states.shape) # [128, 32, 768]
                 # pooler_output = pooler_output.view((batch_size, num_sent, pooler_output.size(-1)))
                 hidden_states_org_size = hidden_states.size()
