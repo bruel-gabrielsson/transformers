@@ -584,7 +584,7 @@ class BertEncoder(nn.Module):
 
                 mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
                 mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_p] = True
-                hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.self.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
+                hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
                 if not self.config.transform_trainable:
                     hidden_states[mask_this_transform] = hidden_states[mask_this_transform].detach()
 
@@ -650,7 +650,7 @@ class BertEncoder(nn.Module):
 
             mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
             mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_p] = True
-            hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.self.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
+            hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
             if not self.config.transform_trainable:
                 hidden_states[mask_this_transform] = hidden_states[mask_this_transform].detach()
             
