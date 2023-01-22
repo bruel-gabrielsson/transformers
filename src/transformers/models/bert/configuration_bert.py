@@ -139,6 +139,7 @@ class BertConfig(PretrainedConfig):
         use_cache=True,
         classifier_dropout=None,
         dropout_only_layer=-3,
+        higher_dropout_p=0.5,
         **kwargs
     ):
         super().__init__(pad_token_id=pad_token_id, **kwargs)
@@ -161,6 +162,7 @@ class BertConfig(PretrainedConfig):
 
         # Rickard
         self.dropout_only_layer = dropout_only_layer
+        self.higher_dropout_p = higher_dropout_p
 
 
 class BertOnnxConfig(OnnxConfig):
