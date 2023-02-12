@@ -585,8 +585,12 @@ class BertEncoder(nn.Module):
                 mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
                 mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_p] = True
                 hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
-                if not self.config.transform_trainable:
-                    hidden_states[mask_this_transform] = hidden_states[mask_this_transform].detach()
+                if not self.config.transform_trainable: # detaching a subset of transformed
+                    
+                    mask_this_transform_detach = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0 # all false
+                    mask_this_transform_detach[torch.logical_and(mask_this_transform, torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_detach_p)] = True
+                    hidden_states[mask_this_transform_detach] = hidden_states[mask_this_transform_detach].detach()
+                    #print("self.config.higher_transform_detach_p", self.config.higher_transform_detach_p, len(mask_this_transform[mask_this_transform==True])/len(mask_this_transform_detach[mask_this_transform_detach==True]))
 
                 if self.config.transform_one_sided:
                     hidden_states = torch.stack([hidden_states, hidden_states2], dim=1)
@@ -651,8 +655,10 @@ class BertEncoder(nn.Module):
             mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
             mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_p] = True
             hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
-            if not self.config.transform_trainable:
-                hidden_states[mask_this_transform] = hidden_states[mask_this_transform].detach()
+            if not self.config.transform_trainable: # detaching a subset of transformed
+                mask_this_transform_detach = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0 # all false
+                mask_this_transform_detach[torch.logical_and(mask_this_transform, torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_detach_p)] = True
+                hidden_states[mask_this_transform_detach] = hidden_states[mask_this_transform_detach].detach()
             
             if self.config.transform_one_sided:
                     hidden_states = torch.stack([hidden_states, hidden_states2], dim=1)
