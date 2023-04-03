@@ -1105,6 +1105,8 @@ class BertForPreTraining(BertPreTrainedModel):
         self.bert = BertModel(config)
         self.cls = BertPreTrainingHeads(config)
 
+        self.num_layers = self.bert.num_layers
+
         # Initialize weights and apply final processing
         self.post_init()
 
@@ -1188,6 +1190,16 @@ class BertForPreTraining(BertPreTrainedModel):
                 #seq_relationship_logits=seq_relationship_score,
                 hidden_states=outputs.hidden_states,
                 #attentions=outputs.attentions,
+            )
+
+        # only do more expensive computations if necessary
+        if end_layer <= self.num_layers:
+            return BertForPreTrainingOutput(
+                #loss=total_loss,
+                #prediction_logits=prediction_scores,
+                #seq_relationship_logits=seq_relationship_score,
+                hidden_states=outputs.hidden_states,
+                attentions=outputs.attentions,
             )
 
         sequence_output, pooled_output = outputs[:2]
