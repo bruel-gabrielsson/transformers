@@ -590,7 +590,7 @@ class BertEncoder(nn.Module):
         for i, layer_module in enumerate(self.layer):
             if not (i >= start_layer and i < end_layer):
                 continue
-            
+
             # RICKARD: Could do transforms here, then it's before every layer of hidden_states
 
             if output_hidden_states:
@@ -1027,7 +1027,7 @@ class BertModel(BertPreTrainedModel):
         head_mask = self.get_head_mask(head_mask, self.config.num_hidden_layers)
 
         # it adds token_type_ids, but they are zero if not passed, applies layer norm and dropout
-        if start_layer <= 0 and end_layer >= 1:
+        if start_layer <= 0 and end_layer >= 0:
             embedding_output = self.embeddings(
                 input_ids=input_ids,
                 position_ids=position_ids,
@@ -1038,7 +1038,8 @@ class BertModel(BertPreTrainedModel):
         else:
             embedding_output = inputs_embeds
 
-        if start_layer <= self.num_layers:
+        # We want that if we send start_layer=num_layers and end_layer=num_layers, we still call encoder for formatting, so we can do the predictions later
+        if 0 <= start_layer and start_layer <= self.num_layers and end_layer >= 1:
 
             encoder_outputs = self.encoder(
                 embedding_output,
@@ -1057,10 +1058,24 @@ class BertModel(BertPreTrainedModel):
             sequence_output = encoder_outputs[0]
             pooled_output = self.pooler(sequence_output) if self.pooler is not None else None
         
-        else:
-            assert(False)
-            print("Error: not running")
+        elif end_layer==0:
+            #print("RETURN OOOOOO")
+            #encoder_outputs = embedding_output
+            return BaseModelOutputWithPoolingAndCrossAttentions(
+                last_hidden_state=embedding_output,
+                #pooler_output=embedding_output,
+                #past_key_values=encoder_outputs.past_key_values,
+                hidden_states=(embedding_output,),
+                #attentions=encoder_outputs.attentions,
+                #cross_attentions=encoder_outputs.cross_attentions,
+            )
 
+            #print("Error: not running")
+            #assert(False)
+        else: # lif end_layer >= self.num_layers:
+            assert(False)
+            
+            
         if not return_dict:
             return (sequence_output, pooled_output) + encoder_outputs[1:]
 
@@ -1164,6 +1179,16 @@ class BertForPreTraining(BertPreTrainedModel):
             start_layer=start_layer,
             end_layer=end_layer,
         )
+
+        # We don't need to use the prediction_scores if we don't want to
+        if start_layer <= 0:
+            return BertForPreTrainingOutput(
+                #loss=total_loss,
+                #prediction_logits=prediction_scores,
+                #seq_relationship_logits=seq_relationship_score,
+                hidden_states=outputs.hidden_states,
+                #attentions=outputs.attentions,
+            )
 
         sequence_output, pooled_output = outputs[:2]
         prediction_scores, seq_relationship_score = self.cls(sequence_output, pooled_output)
