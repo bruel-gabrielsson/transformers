@@ -530,7 +530,7 @@ class BertLayer(nn.Module):
 
 def PCA_augment(x, this_x, size):
     # set x to full precision
-    #x = x.to(torch.float32)
+    x = x.to(torch.float32)
 
     K = size
     A = x.reshape(len(x), -1)
