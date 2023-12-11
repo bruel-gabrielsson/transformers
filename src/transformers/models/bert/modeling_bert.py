@@ -528,6 +528,37 @@ class BertLayer(nn.Module):
         return layer_output
 
 
+def PCA_augment(x, this_x, size):
+    K = size
+    A = x.reshape(len(x), -1)
+    mean = A.mean(dim=0)
+    #print(A.shape) # 0 torch.Size([2048, 65536]) # 3 torch.Size([2048, 16384]) 4 torch.Size([2048, 8192])
+    (U, S, V) = torch.pca_lowrank(A, q=None, center=True, niter=2) 
+    #print(V[:, :1])
+    #print(V[:, :1].shape) # [65536, 1])
+    #C = V[:, :K] # [65536, 1]
+    if K >= 1:
+        C = V[:, :K]
+    elif K < 0:
+        C = V[:, K:] # [65536, 1]
+    else:
+        print("[!] Not running PCA")
+        return this_x
+    
+    Ap = this_x.reshape(len(this_x), -1) # [549, 65536] 
+    Ap = Ap - mean
+
+    proj = torch.matmul(Ap, C) # torch.Size([549, 1])
+    vecs = torch.matmul(proj, C.permute(1,0))
+    #print(vecs.shape)
+    #print("PCA", torch.norm(vecs))
+    Ap = Ap - vecs
+    #(Ap.shape)
+    Ap = Ap + mean
+    print('!')
+    return Ap.reshape(this_x.size())
+
+
 class BertEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -544,6 +575,9 @@ class BertEncoder(nn.Module):
                     this_config.hidden_dropout_prob = 0.0
 
             layers.append( BertLayer(this_config) )
+
+        if self.config.PCA_size != 0:
+            print("[!] USING PCA AUGMENTATION")
 
         #self.layer = nn.ModuleList([BertLayer(config) for _ in range(config.num_hidden_layers)])
         self.layer = nn.ModuleList(layers)
@@ -571,7 +605,6 @@ class BertEncoder(nn.Module):
         for i, layer_module in enumerate(self.layer):
             # RICKARD: Do transformations here on hidden_states
 
-            
             if self.training and i == self.config.transform_layer:
                 #print("Test", self.config.transform_layer)
                 #print(hidden_states.shape) # [128, 32, 768]
@@ -584,7 +617,12 @@ class BertEncoder(nn.Module):
 
                 mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
                 mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_p] = True
-                hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
+
+                if self.config.PCA_size != 0:
+                    hidden_states[mask_this_transform] = PCA_augment(hidden_states, hidden_states[mask_this_transform], self.config.PCA_size)
+                else:
+                    hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
+
                 if not self.config.transform_trainable: # detaching a subset of transformed
                     
                     mask_this_transform_detach = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0 # all false
