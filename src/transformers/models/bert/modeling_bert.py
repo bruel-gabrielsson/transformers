@@ -529,6 +529,9 @@ class BertLayer(nn.Module):
 
 
 def PCA_augment(x, this_x, size):
+    # set x to full precision
+    x = x.float() 
+
     K = size
     A = x.reshape(len(x), -1)
     mean = A.mean(dim=0)
@@ -555,7 +558,7 @@ def PCA_augment(x, this_x, size):
     Ap = Ap - vecs
     #(Ap.shape)
     Ap = Ap + mean
-    print('!')
+    #print('!')
     return Ap.reshape(this_x.size())
 
 
