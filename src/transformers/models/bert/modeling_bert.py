@@ -536,7 +536,7 @@ def PCA_augment(x, this_x, size):
     A = x.reshape(len(x), -1)
     mean = A.mean(dim=0)
     #print(A.shape) # 0 torch.Size([2048, 65536]) # 3 torch.Size([2048, 16384]) 4 torch.Size([2048, 8192])
-    (U, S, V) = torch.pca_lowrank(A, q=None, center=True, niter=2) 
+    (U, S, V) = torch.pca_lowrank(A.to(torch.float32), q=None, center=True, niter=2) 
     #print(V[:, :1])
     #print(V[:, :1].shape) # [65536, 1])
     #C = V[:, :K] # [65536, 1]
