@@ -697,7 +697,7 @@ class BertEncoder(nn.Module):
             mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_p] = True
 
             if self.config.PCA_size != 0:
-                print("PCA2")
+                #print("PCA2")
                 hidden_states[mask_this_transform] = PCA_augment(hidden_states, hidden_states[mask_this_transform], self.config.PCA_size)
             else:
                 hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
