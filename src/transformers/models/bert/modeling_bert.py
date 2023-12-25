@@ -695,7 +695,15 @@ class BertEncoder(nn.Module):
 
             mask_this_transform = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0
             mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_p] = True
-            hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
+
+            if self.config.PCA_size != 0:
+                print("PCA2")
+                hidden_states[mask_this_transform] = PCA_augment(hidden_states, hidden_states[mask_this_transform], self.config.PCA_size)
+            else:
+                hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
+
+            #hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
+            
             if not self.config.transform_trainable: # detaching a subset of transformed
                 mask_this_transform_detach = torch.zeros(len(hidden_states)).to(hidden_states.device) > 0 # all false
                 mask_this_transform_detach[torch.logical_and(mask_this_transform, torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_detach_p)] = True
