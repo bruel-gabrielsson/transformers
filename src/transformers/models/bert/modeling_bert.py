@@ -528,12 +528,19 @@ class BertLayer(nn.Module):
         return layer_output
 
 
-def PCA_augment(x, this_x, size):
+def PCA_augment(x, this_x, size, type="normal"):
     # set x to full precision
     #x = x.to(torch.float32)
 
     K = size
-    A = x.reshape(len(x), -1)
+    if type == "per_token":
+        print("per_token")
+        A = x.reshape(-1, x.shape[-1])
+    elif type == "normal":
+        A = x.reshape(len(x), -1)
+    else:
+        assert(False)
+
     mean = A.mean(dim=0)
     #print(A.shape) # 0 torch.Size([2048, 65536]) # 3 torch.Size([2048, 16384]) 4 torch.Size([2048, 8192])
     (U, S, V) = torch.pca_lowrank(A, q=None, center=True, niter=2) 
@@ -622,7 +629,7 @@ class BertEncoder(nn.Module):
                 mask_this_transform[torch.cuda.FloatTensor(len(hidden_states)).uniform_()<=self.config.higher_transform_p] = True
 
                 if self.config.PCA_size != 0:
-                    hidden_states[mask_this_transform] = PCA_augment(hidden_states, hidden_states[mask_this_transform], self.config.PCA_size)
+                    hidden_states[mask_this_transform] = PCA_augment(hidden_states, hidden_states[mask_this_transform], self.config.PCA_size, type=self.config.PCA_type)
                 else:
                     hidden_states[mask_this_transform] = torch.nn.Dropout(p=self.config.higher_dropout_p, inplace=False)(hidden_states[mask_this_transform])
 
