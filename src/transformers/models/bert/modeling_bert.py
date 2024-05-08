@@ -594,7 +594,8 @@ class BertEncoder(nn.Module):
 
             layers.append( BertLayer(this_config) )
 
-        if self.config.PCA_size != 0:
+        # check if has self.config has "PCA_size" attribute and it's nonzero
+        if hasattr(self.config, "PCA_size") and self.config.PCA_size != 0:
             print("[!] USING PCA AUGMENTATION")
 
         #self.layer = nn.ModuleList([BertLayer(config) for _ in range(config.num_hidden_layers)])
